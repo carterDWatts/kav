@@ -1,7 +1,7 @@
 #include <FastLED.h>
 
 #define LED_PIN     5
-#define NUM_LEDS    2002212
+#define NUM_LEDS    200
 #define BRIGHTNESS  64
 #define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
@@ -11,19 +11,11 @@ CRGB leds[NUM_LEDS];
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
 
-extern CRGBPalette16 myRedWhiteBluePalette;
-extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
-
-
-// LEDs
-int brightness = 64;
-bool increasing = true;
-int maxBrightness = 255;
-int minBrightness = 0;
 
 // Audio
 const int sampleWindow = 30; // Sample window width in mS (50 mS = 20Hz)
 unsigned int sample;
+
 
 void setup() {
 
@@ -40,22 +32,13 @@ void setup() {
 
 
 void loop() {
-
-  //modBrightness();
-
-  //Serial.println(brightness);
-
-  brightness = getBrightness();
-  
-
-  fillLEDs();
-  
+    
+  fillLEDs(getAudioLevel()); 
   FastLED.show();
-  FastLED.delay(1000 / UPDATES_PER_SECOND);
-  
+ 
 }
 
-void fillLEDs(){
+void fillLEDs(int brightness){
 
   uint8_t colorIndex = 1;
   for( int i = 0; i < NUM_LEDS; i++) {
@@ -63,17 +46,6 @@ void fillLEDs(){
     colorIndex += 3;
   }
 
-}
-
-int getBrightness(){
-
-  
-  int volts = getAudioLevel();
-  
-  double level = map(volts, 0, 1024, 0, 255);
-  //Serial.print("level:");Serial.println(level);
-  return level;
-  
 }
 
 int getAudioLevel(){
@@ -97,25 +69,7 @@ int getAudioLevel(){
     }
    }
    peakToPeak = signalMax - signalMin;  // max - min = peak-peak amplitude
-   //double volts = (peakToPeak * 5.0) / 1024;  // convert to volts
-  
-   //Serial.print("in level:");Serial.println(peakToPeak);
-   return peakToPeak;
-   //return volts;
-}
-
-// For brightness fade
-void modBrightness(){
-
-  if(brightness == maxBrightness){
-    increasing = false;
-  }
-  if(brightness == minBrightness){
-    increasing = true;
-  }
-
-  if(increasing){
-    brightness++;
-  }else brightness--;
+   
+   return map(peakToPeak, 0, 1024, 0, 255);
   
 }
